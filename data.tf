@@ -8,4 +8,5 @@ locals {
   memory_size = 256
   timeout     = 60
   runtime     = "python3.8"
+  tags        = var.tags
 }

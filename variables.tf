@@ -8,3 +8,7 @@ variable "prefix" {
   description = "add prefix to default name i.e. 'prefix-spleeter-web-service'"
   default     = ""
 }
+
+variable "tags" {
+  default = {}
+}
