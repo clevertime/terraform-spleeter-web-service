@@ -71,3 +71,6 @@ terraform.rc
 
 # MAC
 *.DS_Store
+
+# Archives
+*.zip
