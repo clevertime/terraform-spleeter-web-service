@@ -12,7 +12,7 @@ resource "aws_lambda_function" "main" {
   memory_size      = local.memory_size
   runtime          = local.runtime
   timeout          = local.timeout
-  handler          = "avm-master.lambda_handler"
+  handler          = "spleeter-web-service-main.lambda_handler"
   filename         = "${path.module}/lambda/main.zip"
   source_code_hash = data.archive_file.main.output_base64sha256
   tags             = local.tags
@@ -40,4 +40,24 @@ EOF
 resource "aws_iam_role_policy_attachment" "main_basic_execution" {
   role       = aws_iam_role.main.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
+data "aws_iam_policy_document" "main_lambda" {
+  statement {
+    actions = [
+      "s3:List*",
+      "s3:Get*",
+    ]
+
+    resources = [
+      aws_s3_bucket.uploads.arn,
+      join("", [aws_s3_bucket.uploads.arn, "/*"])
+    ]
+  }
+}
+
+resource "aws_iam_role_policy" "main" {
+  name   = join("-", [local.name, "main", "lambda"])
+  role   = aws_iam_role.main.id
+  policy = data.aws_iam_policy_document.main_lambda.json
 }
