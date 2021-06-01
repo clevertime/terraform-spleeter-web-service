@@ -12,6 +12,7 @@ resource "aws_sfn_state_machine" "this" {
       "Resource": "${aws_lambda_function.validate.arn}",
       "InputPath": "$",
       "Next": "processor",
+      "ResultPath": "$",
       "Retry": [
         {
           "ErrorEquals": ["States.Timeout"],
@@ -29,16 +30,14 @@ resource "aws_sfn_state_machine" "this" {
     },
     "processor": {
       "Type": "Task",
-      "Resource": "arn:aws:states:::lambda:invoke",
-      "Parameters": {
-        "FunctionName": "${aws_lambda_function.validate.function_name}"
-      },
+      "Resource": "${aws_lambda_function.processor.arn}",
+      "InputPath": "$",
       "Next": "final_state",
       "Retry": [
         {
           "ErrorEquals": ["States.Timeout"],
           "IntervalSeconds": 3,
-          "MaxAttempts": 2,
+          "MaxAttempts": 1,
           "BackoffRate": 1.5
         }
       ],
