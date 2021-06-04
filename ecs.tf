@@ -11,7 +11,7 @@ resource "aws_ecs_task_definition" "this" {
   container_definitions = jsonencode(
       [
           {
-              image             = "848147755445.dkr.ecr.us-west-2.amazonaws.com/spleeter-web-service-repo:latest"
+              image             = var.docker_ecs_uri
               memoryReservation = 4096
               name              = join("-", [local.name, "task"])
               logConfiguration  = {
