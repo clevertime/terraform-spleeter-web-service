@@ -11,7 +11,7 @@ resource "aws_sfn_state_machine" "this" {
       "Type": "Task",
       "Resource": "${aws_lambda_function.validate.arn}",
       "InputPath": "$",
-      "Next": "processor",
+      "Next": "process",
       "ResultPath": "$",
       "Retry": [
         {
@@ -28,24 +28,26 @@ resource "aws_sfn_state_machine" "this" {
         }
       ]
     },
-    "processor": {
+    "process": {
       "Type": "Task",
-      "Resource": "${aws_lambda_function.processor.arn}",
-      "InputPath": "$",
+      "Resource": "arn:aws:states:::ecs:runTask.sync",
+      "Parameters": {
+        "LaunchType": "FARGATE",
+        "Cluster": "${aws_ecs_cluster.this.arn}",
+        "TaskDefinition": "${aws_ecs_task_definition.this.arn}",
+        "NetworkConfiguration": {
+          "AwsvpcConfiguration": {
+            "Subnets": ${jsonencode(var.subnets)},
+            "AssignPublicIp": "DISABLED"
+          }
+        }
+      },
       "Next": "final_state",
-      "Retry": [
-        {
-          "ErrorEquals": ["States.Timeout"],
-          "IntervalSeconds": 3,
-          "MaxAttempts": 1,
-          "BackoffRate": 1.5
-        }
-      ],
       "Catch": [
-        {
-          "ErrorEquals": [ "States.ALL" ],
-          "Next": "final_state"
-        }
+          {
+            "ErrorEquals": [ "States.ALL" ],
+            "Next": "fail_state"
+          }
       ]
     },
     "final_state": {
@@ -98,8 +100,50 @@ data "aws_iam_policy_document" "sfn" {
     ]
 
     resources = [
-      aws_lambda_function.validate.arn,
-      aws_lambda_function.processor.arn
+      aws_lambda_function.validate.arn
+    ]
+  }
+
+  statement {
+    actions = [
+      "ecs:RunTask"
+    ]
+
+    resources = [
+      aws_ecs_task_definition.this.arn
+    ]
+  }
+
+  statement {
+    actions = [
+      "ecs:StopTask",
+      "ecs:DescribeTasks"
+    ]
+
+    resources = [
+      "*"
+    ]
+  }
+
+  statement {
+    actions = [
+      "iam:PassRole"
+    ]
+
+    resources = [
+      aws_iam_role.processor.arn
+    ]
+  }
+
+  statement {
+    actions = [
+      "events:PutTargets",
+      "events:PutRule",
+      "events:DescribeRule"
+    ]
+
+    resources = [
+      join(":", ["arn:aws:events", local.region, local.account_id, "rule/StepFunctionsGetEventsForECSTaskRule"])
     ]
   }
 }

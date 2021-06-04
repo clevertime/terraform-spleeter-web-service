@@ -42,4 +42,12 @@ resource "aws_s3_bucket" "processed" {
       }
     }
   }
+
+  lifecycle_rule {
+    enabled = true
+
+    expiration {
+      days = 1
+    }
+  }
 }

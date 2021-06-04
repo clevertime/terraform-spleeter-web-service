@@ -12,3 +12,15 @@ variable "prefix" {
 variable "tags" {
   default = {}
 }
+
+# ddb
+variable "ddb_read_capacity" {
+  default = 2
+}
+
+variable "ddb_write_capacity" {
+  default = 2
+}
+
+# ecs
+variable "subnets" {}
