@@ -4,6 +4,7 @@ import logging
 import ffmpeg
 import uuid
 import os
+import sys
 
 from os import listdir
 from os.path import isfile, join
@@ -12,7 +13,7 @@ from spleeter.separator import Separator
 
 result_s3_bucket = "spleeter-web-service-processed"
 
-def lambda_handler(event, context):
+def handler(event):
     ''' main handler '''
 
     # Using embedded configuration.
@@ -38,8 +39,7 @@ def lambda_handler(event, context):
 
     # upload processed files
     try:
-        processed_files_path = processed_path + "/" + event['key'].split(".")[0] # uncomment for lambda
-        # processed_files_path = event['key'] + "/" + event['key'].split(".")[0] # local testing
+        processed_files_path = processed_path + "/" + event['key'].split(".")[0]
         processed_files = [f for f in listdir(processed_files_path) if isfile(join(processed_files_path, f))]
         s3_prefix = str(uuid.uuid4())
 
@@ -53,5 +53,21 @@ def lambda_handler(event, context):
 
 if __name__ == '__main__':
 
-    event = {'bucket': 'spleeter-web-service-uploads', 'key': 'example.mp3', 'size': 8412525, 'last_modified_date': '2021-05-31T21:08:47+00:00', 'timestamp': 1622525039298}
-    lambda_handler(event, None)
+    # validate environment
+    ENVIRONMENT_VARIABLES = ['INPUT_S3_BUCKET', 'INPUT_S3_KEY']
+    for variable in ENVIRONMENT_VARIABLES:
+        if variable not in os.environ:
+            raise Exception(f"[!] missing environment variable: {variable}")
+
+    # create event
+    event = {}
+    event['bucket'] = os.environ.get('INPUT_S3_BUCKET')
+    event['key'] = os.environ.get('INPUT_S3_KEY')
+    print(f"[*] valid event: {event}\n[*] starting processing")
+
+    # test data
+    if os.environ.get('USE_TEST_DATA') == 'true':
+        event = {'bucket': 'spleeter-web-service-uploads', 'key': 'example.mp3', 'size': 8412525, 'last_modified_date': '2021-05-31T21:08:47+00:00', 'timestamp': 1622525039298}
+
+    # start processing
+    handler(event)

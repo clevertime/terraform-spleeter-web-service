@@ -40,6 +40,23 @@ resource "aws_sfn_state_machine" "this" {
             "Subnets": ${jsonencode(var.subnets)},
             "AssignPublicIp": "DISABLED"
           }
+        },
+        "Overrides": {
+          "ContainerOverrides": [
+            {
+              "Name": "${join("-", [local.name, "task"])}",
+              "Environment": [
+                {
+                  "Name": "INPUT_S3_BUCKET",
+                  "Value.$": "$.bucket"
+                },
+                {
+                  "Name": "INPUT_S3_KEY",
+                  "Value.$": "$.key"
+                }
+              ]
+            }
+          ]
         }
       },
       "Next": "final_state",
