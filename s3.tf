@@ -47,7 +47,7 @@ resource "aws_s3_bucket" "processed" {
     enabled = true
 
     expiration {
-      days = 1
+      days = var.ttl
     }
   }
 }

@@ -13,6 +13,11 @@ variable "tags" {
   default = {}
 }
 
+variable "ttl" {
+  description = "Time to live of processed jobs; specified in days"
+  default     = 1
+}
+
 # ddb
 variable "ddb_read_capacity" {
   default = 2

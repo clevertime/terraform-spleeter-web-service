@@ -21,6 +21,7 @@ resource "aws_lambda_function" "main" {
     variables = {
       STATEMACHINE_ARN = aws_sfn_state_machine.this.arn,
       DDB_TABLE_NAME   = aws_dynamodb_table.this.name
+      TTL              = var.ttl
     }
   }
 }
@@ -77,6 +78,7 @@ data "aws_iam_policy_document" "main_lambda" {
       "dynamodb:List*",
       "dynamodb:GetItem",
       "dynamodb:PutItem",
+      "dynamodb:UpdateItem",
       "dynamodb:DeleteItem"
     ]
 
@@ -110,6 +112,12 @@ resource "aws_lambda_function" "validate" {
   filename         = "${path.module}/lambda/validate.zip"
   source_code_hash = data.archive_file.validate.output_base64sha256
   tags             = local.tags
+
+  environment {
+    variables = {
+      DDB_TABLE_NAME   = aws_dynamodb_table.this.name
+    }
+  }
 }
 
 resource "aws_iam_role" "validate" {
@@ -154,6 +162,7 @@ data "aws_iam_policy_document" "validate_lambda" {
       "dynamodb:List*",
       "dynamodb:GetItem",
       "dynamodb:PutItem",
+      "dynamodb:UpdateItem",
       "dynamodb:DeleteItem"
     ]
 

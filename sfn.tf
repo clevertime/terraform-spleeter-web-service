@@ -53,6 +53,14 @@ resource "aws_sfn_state_machine" "this" {
                 {
                   "Name": "INPUT_S3_KEY",
                   "Value.$": "$.key"
+                },
+                {
+                  "Name": "PROCESS_ID",
+                  "Value.$": "$.process_id"
+                },
+                {
+                  "Name": "DDB_TABLE_NAME",
+                  "Value.$": "$.status_table_name"
                 }
               ]
             }

@@ -90,6 +90,7 @@ data "aws_iam_policy_document" "processor" {
       "dynamodb:List*",
       "dynamodb:GetItem",
       "dynamodb:PutItem",
+      "dynamodb:UpdateItem",
       "dynamodb:DeleteItem"
     ]
 

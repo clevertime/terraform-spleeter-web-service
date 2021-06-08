@@ -3,6 +3,8 @@ import json
 from datetime import datetime
 import logging
 import uuid
+import time
+
 from urllib.parse import unquote_plus
 
 import boto3
@@ -14,12 +16,20 @@ sfn_client = boto3.client('stepfunctions')
 statemachine_arn=os.environ['STATEMACHINE_ARN']
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table(os.environ['DDB_TABLE_NAME'])
+ttl = int(os.environ['TTL'])
+
+def get_ttl(offset):
+    ''' return unix epoch ms ttl based of arg: `offset` (days) '''
+
+    ms_offset = offset * 24 * 60 * 60 * 1000
+    return round(time.time() * 1000) + ms_offset
 
 def update_status_table(id, message):
     ''' update dynamo with process status '''
 
     message['id'] = id
     message['status'] = 'UPLOADED'
+    message['ttl'] = {'N': get_ttl(ttl)}
     table.put_item(Item=message)
 
 def start_statemachine(message):
@@ -27,6 +37,7 @@ def start_statemachine(message):
 
     logger.info("[*] Invoking statemachine")
     process_id = str(uuid.uuid4())
+    message['process_id'] = process_id
     try:
         update_status_table(process_id, message)
     except Exception as e:
