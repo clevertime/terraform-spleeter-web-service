@@ -74,3 +74,4 @@ terraform.rc
 
 # Archives
 *.zip
+*.zip*

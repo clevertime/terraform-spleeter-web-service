@@ -19,7 +19,8 @@ resource "aws_lambda_function" "main" {
 
   environment {
     variables = {
-      STATEMACHINE_ARN = aws_sfn_state_machine.this.arn
+      STATEMACHINE_ARN = aws_sfn_state_machine.this.arn,
+      DDB_TABLE_NAME   = aws_dynamodb_table.this.name
     }
   }
 }

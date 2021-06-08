@@ -12,16 +12,30 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 sfn_client = boto3.client('stepfunctions')
 statemachine_arn=os.environ['STATEMACHINE_ARN']
+dynamodb = boto3.resource('dynamodb')
+table = dynamodb.Table(os.environ['DDB_TABLE_NAME'])
 
+def update_status_table(id, message):
+    ''' update dynamo with process status '''
+
+    message['id'] = id
+    message['status'] = 'UPLOADED'
+    table.put_item(Item=message)
 
 def start_statemachine(message):
     ''' invoke state machine '''
 
     logger.info("[*] Invoking statemachine")
+    process_id = str(uuid.uuid4())
+    try:
+        update_status_table(process_id, message)
+    except Exception as e:
+        logger.error("Fatal error", exc_info=True)
+        raise e
     try:
         start_execution = sfn_client.start_execution(
             stateMachineArn=statemachine_arn,
-            name = f"{message['key']}-{str(uuid.uuid4())[0:7]}",
+            name = f"{message['key']}-{process_id[0:7]}",
             input=json.dumps(message)
         )
         execution_arn = start_execution['executionArn']
