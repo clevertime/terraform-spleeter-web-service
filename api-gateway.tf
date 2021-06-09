@@ -62,7 +62,6 @@ resource "aws_lambda_permission" "apigw_to_upload_lambda" {
     principal      = "apigateway.amazonaws.com"
     source_arn     = join("/", [aws_apigatewayv2_api.this.execution_arn, "*", local.api_integrations["upload"].method, local.api_integrations["upload"].path])
     statement_id   = "AllowExecutionFromAPIGW"
-    source_account = local.account_id
 }
 
 resource "aws_apigatewayv2_route" "upload" {
