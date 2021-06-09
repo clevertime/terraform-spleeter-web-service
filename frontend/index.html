@@ -11,7 +11,7 @@
       <h1>S3 Uploader Test</h1>
 
       <div v-if="!image">
-        <h2>Select an image</h2>
+        <h2>Select an mp3 file</h2>
         <input type="file" @change="onFileChange">
       </div>
       <div v-else>
@@ -50,8 +50,7 @@
                 return alert('Wrong file type - MP3 only.')
               }
               if (e.target.result.length > MAX_FILE_SIZE) {
-                return alert(e.target.result.length)
-                return alert('Image is loo large.')
+                return alert('File is loo large.')
               }
               this.image = e.target.result
             }
@@ -75,7 +74,7 @@
             for (var i = 0; i < binary.length; i++) {
               array.push(binary.charCodeAt(i))
             }
-            let blobData = new Blob([new Uint8Array(array)], {type: 'image/jpeg'})
+            let blobData = new Blob([new Uint8Array(array)], {type: 'audio/mpeg'})
             console.log('Uploading to: ', response.uploadURL)
             const result = await fetch(response.uploadURL, {
               method: 'PUT',

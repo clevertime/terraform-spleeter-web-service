@@ -201,7 +201,7 @@ resource "aws_lambda_function" "upload" {
 
   environment {
     variables = {
-      "UploadBucket" = "sam-app-s3uploadbucket-15hglhoknqk4a"
+      "UploadBucket" = aws_s3_bucket.upload.id
     }
   }
 }
