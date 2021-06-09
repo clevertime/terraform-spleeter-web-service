@@ -74,5 +74,3 @@ terraform.rc
 
 # Archives
 *.zip
-./lambda/main.zip
-*.zip*
