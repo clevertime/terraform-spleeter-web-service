@@ -177,3 +177,74 @@ resource "aws_iam_role_policy" "validate" {
   role   = aws_iam_role.validate.id
   policy = data.aws_iam_policy_document.validate_lambda.json
 }
+
+# api integrations
+
+# upload
+data "archive_file" "upload" {
+  type        = "zip"
+  source_dir  = "${path.module}/lambda/upload/"
+  output_path = "${path.module}/lambda/upload.zip"
+}
+
+resource "aws_lambda_function" "upload" {
+  function_name    = join("-", [local.name, "upload"])
+  description      = "Lambda manage upload events"
+  role             = aws_iam_role.upload.arn
+  memory_size      = local.memory_size
+  runtime          = "nodejs12.x"
+  timeout          = local.timeout
+  handler          = "app.handler"
+  filename         = "${path.module}/lambda/upload.zip"
+  source_code_hash = data.archive_file.upload.output_base64sha256
+  tags             = local.tags
+
+  environment {
+    variables = {
+      "UploadBucket" = "sam-app-s3uploadbucket-15hglhoknqk4a"
+    }
+  }
+}
+
+resource "aws_iam_role" "upload" {
+  name = join("-", [local.name, "upload", "lambda"])
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      },
+      "Effect": "Allow"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy_attachment" "upload_basic_execution" {
+  role       = aws_iam_role.upload.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
+data "aws_iam_policy_document" "upload_lambda" {
+  statement {
+    actions = [
+      "s3:*"
+    ]
+
+    resources = [
+      aws_s3_bucket.uploads.arn,
+      join("", [aws_s3_bucket.uploads.arn, "/*"])
+    ]
+  }
+}
+
+resource "aws_iam_role_policy" "upload" {
+  name   = join("-", [local.name, "upload", "lambda"])
+  role   = aws_iam_role.upload.id
+  policy = data.aws_iam_policy_document.upload_lambda.json
+}
