@@ -115,7 +115,7 @@ resource "aws_lambda_function" "validate" {
 
   environment {
     variables = {
-      DDB_TABLE_NAME   = aws_dynamodb_table.this.name
+      DDB_TABLE_NAME = aws_dynamodb_table.this.name
     }
   }
 }

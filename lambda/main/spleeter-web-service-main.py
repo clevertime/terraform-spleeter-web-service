@@ -21,15 +21,15 @@ ttl = int(os.environ['TTL'])
 def get_ttl(offset):
     ''' return unix epoch ms ttl based of arg: `offset` (days) '''
 
-    ms_offset = offset * 24 * 60 * 60 * 1000
-    return round(time.time() * 1000) + ms_offset
+    offset_in_seconds = offset * 24 * 60 * 60 * 1000
+    return round(time.time()) + offset_in_seconds
 
 def update_status_table(id, message):
     ''' update dynamo with process status '''
 
     message['id'] = id
     message['status'] = 'UPLOADED'
-    message['ttl'] = {'N': get_ttl(ttl)}
+    message['ttl'] = get_ttl(ttl)
     table.put_item(Item=message)
 
 def start_statemachine(message):

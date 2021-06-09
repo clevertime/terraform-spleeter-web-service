@@ -9,32 +9,32 @@ resource "aws_cloudwatch_log_group" "this" {
 
 resource "aws_ecs_task_definition" "this" {
   container_definitions = jsonencode(
-      [
-          {
-              image             = var.docker_ecs_uri
-              memoryReservation = 4096
-              name              = join("-", [local.name, "task"])
-              logConfiguration  = {
-                  logDriver = "awslogs"
-                  options   = {
-                      awslogs-group         = join("", ["/ecs/", local.name, "-cluster"])
-                      awslogs-region        = local.region
-                      awslogs-stream-prefix = "ecs"
-                  }
-              }
-          },
-      ]
+    [
+      {
+        image             = var.docker_ecs_uri
+        memoryReservation = 4096
+        name              = join("-", [local.name, "task"])
+        logConfiguration = {
+          logDriver = "awslogs"
+          options = {
+            awslogs-group         = join("", ["/ecs/", local.name, "-cluster"])
+            awslogs-region        = local.region
+            awslogs-stream-prefix = "ecs"
+          }
+        }
+      },
+    ]
   )
-  cpu                      = "2048"
-  execution_role_arn       = aws_iam_role.processor.arn
-  family                   = join("-", [local.name, "task"])
-  memory                   = "6144"
-  network_mode             = "awsvpc"
+  cpu                = "2048"
+  execution_role_arn = aws_iam_role.processor.arn
+  family             = join("-", [local.name, "task"])
+  memory             = "6144"
+  network_mode       = "awsvpc"
   requires_compatibilities = [
-      "FARGATE",
+    "FARGATE",
   ]
-  tags                     = local.tags
-  task_role_arn            = aws_iam_role.processor.arn
+  tags          = local.tags
+  task_role_arn = aws_iam_role.processor.arn
 }
 
 resource "aws_iam_role" "processor" {

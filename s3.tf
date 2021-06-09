@@ -9,6 +9,14 @@ resource "aws_s3_bucket" "uploads" {
       }
     }
   }
+
+  lifecycle_rule {
+    enabled = true
+
+    expiration {
+      days = var.ttl
+    }
+  }
 }
 
 resource "aws_s3_bucket_notification" "uploads" {
@@ -23,11 +31,11 @@ resource "aws_s3_bucket_notification" "uploads" {
 }
 
 resource "aws_lambda_permission" "s3_uploads_to_lambda_main" {
-  statement_id  = "AllowExecutionFromS3Bucket"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.main.arn
-  principal     = "s3.amazonaws.com"
-  source_arn    = aws_s3_bucket.uploads.arn
+  statement_id   = "AllowExecutionFromS3Bucket"
+  action         = "lambda:InvokeFunction"
+  function_name  = aws_lambda_function.main.arn
+  principal      = "s3.amazonaws.com"
+  source_arn     = aws_s3_bucket.uploads.arn
   source_account = local.account_id
 }
 
