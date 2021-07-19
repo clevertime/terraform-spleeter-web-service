@@ -40,7 +40,16 @@ example invocation: `./deploy.sh -p my_aws_profile_name -r us-west-2 -s subnet-X
   d. Docker will build the image and push to the ECR repository. (This may take a few minutes depending on your connection)
   e. The ECR image uri will be added to `terraform.tfvars`.
   f. Terraform will build the rest of the required infrastructure.
-  
+  ```
+  Apply complete! Resources: 26 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+ecr_repository_url = "848147755445.dkr.ecr.us-west-2.amazonaws.com/spleeter-web-service-repo"
+s3_processed_bucket = "spleeter-web-service-processed"
+s3_uploads_bucket = "spleeter-web-service-uploads"
+status_dynamo_table = "spleeter-web-service-data"
+```
 2. Upload an mp3 file to the uploads bucket. (there is an example file in [./files/](./files))
 3. Monitor progress in either Dynamo or StepFunctions
 4. Once file is in a processed state, the separated audio files can be downloaded from the processed S3 bucket.
