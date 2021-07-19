@@ -34,13 +34,13 @@ this repository includes a script [deploy.sh](./deploy.sh) that will build the d
 example invocation: `./deploy.sh -p my_aws_profile_name -r us-west-2 -s subnet-XXXXXXXXXXXXX,subnet-YYYYYYYYYYYYY`
 
 1. Run Deploy Script.
-  a. `provider.tf` will be created with your region and profile .
-  b. `terraform.tfvars` will be created with the specified subnets.
-  c. Terraform will create an ECR repository first.
-  d. Docker will build the image and push to the ECR repository. (This may take a few minutes depending on your connection)
-  e. The ECR image uri will be added to `terraform.tfvars`.
-  f. Terraform will build the rest of the required infrastructure.
-  ```
+a. `provider.tf` will be created with your region and profile .
+b. `terraform.tfvars` will be created with the specified subnets.
+c. Terraform will create an ECR repository first.
+d. Docker will build the image and push to the ECR repository. (This may take a few minutes depending on your connection)
+e. The ECR image uri will be added to `terraform.tfvars`.
+f. Terraform will build the rest of the required infrastructure.
+```
   Apply complete! Resources: 26 added, 0 changed, 0 destroyed.
 
 Outputs:
