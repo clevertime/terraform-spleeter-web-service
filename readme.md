@@ -34,15 +34,19 @@ this repository includes a script [deploy.sh](./deploy.sh) that will build the d
 example invocation: `./deploy.sh -p my_aws_profile_name -r us-west-2 -s subnet-XXXXXXXXXXXXX,subnet-YYYYYYYYYYYYY`
 
 1. Run Deploy Script.
-    a. `provider.tf` will be created with your region and profile .
-    b. `terraform.tfvars` will be created with the specified subnets.
-    c. Terraform will create an ECR repository first.
-    d. Docker will build the image and push to the ECR repository. (This may take a few minutes depending on your connection)
-    e. The ECR image uri will be added to `terraform.tfvars`.
-    f. Terraform will build the rest of the required infrastructure.
+    * `provider.tf` will be created with your region and profile .
+    * `terraform.tfvars` will be created with the specified subnets.
+    * Terraform will create an ECR repository first.
+    * Docker will build the image and push to the ECR repository. (This may take a few minutes depending on your connection)
+    * The ECR image uri will be added to `terraform.tfvars`.
+    * Terraform will build the rest of the required infrastructure.
 2. Upload an mp3 file to the uploads bucket. (there is an example file in [./files/](./files))
+![upload](./docs/images/upload.png)
 3. Monitor progress in either Dynamo or StepFunctions
+![sfn](./docs/images/sfn.png)
+![ddb](./docs/images/ddb.png)
 4. Once file is in a processed state, the separated audio files can be downloaded from the processed S3 bucket.
+![processed](./docs/images/processed.png)
 
 ## terraform-docs
 ## Providers
