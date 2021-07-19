@@ -27,6 +27,10 @@ resource "aws_s3_bucket" "uploads" {
   }
 }
 
+output "s3_uploads_bucket" {
+  value = aws_s3_bucket.uploads.id
+}
+
 resource "aws_s3_bucket_notification" "uploads" {
   bucket = aws_s3_bucket.uploads.id
 
@@ -66,4 +70,8 @@ resource "aws_s3_bucket" "processed" {
       days = var.ttl
     }
   }
+}
+
+output "s3_processed_bucket" {
+  value = aws_s3_bucket.processed.id
 }

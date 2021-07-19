@@ -28,6 +28,10 @@ variable "ddb_write_capacity" {
 }
 
 # ecs
-variable "subnets" {}
+variable "subnets" {
+  default = []
+}
 
-variable "docker_ecs_uri" {}
+variable "docker_ecs_uri" {
+  default = null
+}
