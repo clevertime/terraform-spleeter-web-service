@@ -24,6 +24,14 @@ resource "aws_lambda_function" "main" {
       TTL              = var.ttl
     }
   }
+
+  dynamic "tracing_config" {
+    for_each = var.xray_tracing_enabled == true ? [""] : []
+
+    content {
+      mode = "Active"
+    }
+  }
 }
 
 resource "aws_iam_role" "main" {
@@ -86,6 +94,29 @@ data "aws_iam_policy_document" "main_lambda" {
       aws_dynamodb_table.this.arn
     ]
   }
+
+  statement {
+    actions = [
+      "sqs:ReceiveMessage",
+      "sqs:DeleteMessage",
+      "sqs:GetQueueAttributes"
+    ]
+
+    resources = [
+      aws_sqs_queue.this.arn
+    ]
+  }
+
+  statement {
+    actions = [
+      "xray:PutTraceSegments",
+      "xray:PutTelemetryRecords",
+    ]
+
+    resources = [
+      "*"
+    ]
+  }
 }
 
 resource "aws_iam_role_policy" "main" {
@@ -116,6 +147,14 @@ resource "aws_lambda_function" "validate" {
   environment {
     variables = {
       DDB_TABLE_NAME = aws_dynamodb_table.this.name
+    }
+  }
+
+  dynamic "tracing_config" {
+    for_each = var.xray_tracing_enabled == true ? [""] : []
+
+    content {
+      mode = "Active"
     }
   }
 }
@@ -170,6 +209,17 @@ data "aws_iam_policy_document" "validate_lambda" {
       aws_dynamodb_table.this.arn
     ]
   }
+
+  statement {
+    actions = [
+      "xray:PutTraceSegments",
+      "xray:PutTelemetryRecords",
+    ]
+
+    resources = [
+      "*"
+    ]
+  }
 }
 
 resource "aws_iam_role_policy" "validate" {
@@ -202,6 +252,14 @@ resource "aws_lambda_function" "upload" {
   environment {
     variables = {
       "UploadBucket" = aws_s3_bucket.uploads.id
+    }
+  }
+
+  dynamic "tracing_config" {
+    for_each = var.xray_tracing_enabled == true ? [""] : []
+
+    content {
+      mode = "Active"
     }
   }
 }
@@ -239,6 +297,17 @@ data "aws_iam_policy_document" "upload_lambda" {
     resources = [
       aws_s3_bucket.uploads.arn,
       join("", [aws_s3_bucket.uploads.arn, "/*"])
+    ]
+  }
+
+  statement {
+    actions = [
+      "xray:PutTraceSegments",
+      "xray:PutTelemetryRecords",
+    ]
+
+    resources = [
+      "*"
     ]
   }
 }

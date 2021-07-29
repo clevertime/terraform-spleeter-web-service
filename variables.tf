@@ -18,6 +18,11 @@ variable "ttl" {
   default     = 1
 }
 
+# lambda
+variable "xray_tracing_enabled" {
+  default = true
+}
+
 # ddb
 variable "ddb_read_capacity" {
   default = 2

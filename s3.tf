@@ -34,21 +34,64 @@ output "s3_uploads_bucket" {
 resource "aws_s3_bucket_notification" "uploads" {
   bucket = aws_s3_bucket.uploads.id
 
-  lambda_function {
-    lambda_function_arn = aws_lambda_function.main.arn
-    events              = ["s3:ObjectCreated:*"]
+  topic {
+    topic_arn = aws_sns_topic.upload_event.arn
+    events    = ["s3:ObjectCreated:*"]
   }
 
-  depends_on = [aws_lambda_permission.s3_uploads_to_lambda_main]
+  depends_on = [aws_sns_topic_policy.upload_event]
 }
 
-resource "aws_lambda_permission" "s3_uploads_to_lambda_main" {
-  statement_id   = "AllowExecutionFromS3Bucket"
-  action         = "lambda:InvokeFunction"
-  function_name  = aws_lambda_function.main.arn
-  principal      = "s3.amazonaws.com"
-  source_arn     = aws_s3_bucket.uploads.arn
-  source_account = local.account_id
+resource "aws_sns_topic" "upload_event" {
+  name = join("-", [local.name, "upload-event"])
+}
+
+resource "aws_sns_topic_policy" "upload_event" {
+  arn = aws_sns_topic.upload_event.arn
+  policy = jsonencode(
+    {
+      "Version" = "2012-10-17",
+      "Statement" = [
+        {
+          "Effect"    = "Allow",
+          "Principal" = { "Service" : "s3.amazonaws.com" },
+          "Action"    = "SNS:Publish",
+          "Resource"  = aws_sns_topic.upload_event.arn,
+          "Condition" = {
+            "ArnLike" = {
+              "aws:SourceArn" = aws_s3_bucket.uploads.arn
+            }
+          }
+        }
+      ]
+    }
+  )
+}
+
+data "aws_iam_policy_document" "sns_topic_upload_event" {
+  statement {
+    actions = [
+      "sns:Publish"
+    ]
+
+    resources = [
+      aws_sns_topic.upload_event.arn
+    ]
+
+    condition {
+      test     = "ArnLike"
+      variable = "aws:SourceArn"
+      values = [
+        aws_s3_bucket.uploads.arn
+      ]
+    }
+  }
+}
+
+resource "aws_sns_topic_subscription" "upload_event_sqs" {
+  topic_arn = aws_sns_topic.upload_event.arn
+  protocol  = "sqs"
+  endpoint  = aws_sqs_queue.this.arn
 }
 
 resource "aws_s3_bucket" "processed" {

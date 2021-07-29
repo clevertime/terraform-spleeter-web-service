@@ -57,24 +57,34 @@ def start_statemachine(message):
 
     return execution_arn
 
-def parse_s3_event(s3_event):
+def parse_event(event):
     return {
-        'bucket': s3_event['s3']['bucket']['name'],
-        'key': unquote_plus(s3_event['s3']['object']['key']),
-        'size': s3_event['s3']['object']['size'],
-        'last_modified_date': s3_event['eventTime'].split('.')[0]+'+00:00',
-        'timestamp': int(round(datetime.utcnow().timestamp()*1000, 0)),
+        'bucket': event['bucket']['name'],
+        'key': unquote_plus(event['object']['key']),
+        'size': event['object']['size']
     }
-
 
 def lambda_handler(event, context):
     try:
         logger.info('Received {} messages'.format(len(event['Records'])))
+
+        # get events from sqs
         for record in event['Records']:
-            logger.info('Parsing S3 Event')
-            message = parse_s3_event(record)
-            print(f"[*] message: {message}")
-            execution_arn = start_statemachine(message)
+            logger.info('Parsing S3 Events')
+
+            # pull individual batched events from s3
+            try:
+                s3_upload_events = json.loads(json.loads(record['body'])['Message'])
+                logger.info('Received {} S3 upload events'.format(len(s3_upload_events['Records'])))
+            except Exception as e:
+                logger.info(f"Didn't find any S3 events: {e}")
+
+            for event in s3_upload_events['Records']:
+                print(f"[*] event: {event}")
+                message = parse_event(event['s3'])
+                print(f"[*] message: {message}")
+                execution_arn = start_statemachine(message)
+
     except Exception as e:
         logger.error("Fatal error", exc_info=True)
         raise e
